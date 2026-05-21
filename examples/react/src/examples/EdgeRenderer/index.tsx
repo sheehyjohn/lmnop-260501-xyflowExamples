@@ -72,6 +72,7 @@ const initialEdges: Edge[] = [
     target: '2',
     label: 'bezier edge (default)',
     className: 'normal-edge',
+    style: { strokeWidth: 3.5 },
   },
   {
     id: 'e2-2a',
