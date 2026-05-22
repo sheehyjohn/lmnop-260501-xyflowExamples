@@ -1,0 +1,20 @@
+.handle {
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.pill {
+  border-radius: 9999px;
+  padding: 6px 18px;
+  line-height: 20px;
+  white-space: nowrap;
+  font-family: "Geist", "Geist Sans", ui-sans-serif, system-ui, sans-serif;
+  user-select: none;
+  color: #09090b;
+  background: var(--pill-color);
+  font-size: var(--pill-size, 13px);
+  font-weight: var(--pill-weight, 600);
+}

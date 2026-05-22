@@ -1,187 +1,132 @@
-import { MouseEvent, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ReactFlow,
   Controls,
   Background,
-  MiniMap,
+  BackgroundVariant,
   addEdge,
   Connection,
   Edge,
   EdgeTypes,
-  MarkerType,
   Node,
+  NodeTypes,
   useEdgesState,
   useNodesState,
 } from '@xyflow/react';
 
-import CustomEdge from './CustomEdge';
-import CustomEdge2 from './CustomEdge2';
 import DraggableEdge from './DraggableEdge';
+import SingleWaypointEdge from './SingleWaypointEdge';
+import MindmapNode from './MindmapNode';
+import CanvasMenu from './CanvasMenu';
 
-const onNodeDragStop = (_: MouseEvent, node: Node) => console.log('drag stop', node);
-const onNodeClick = (_: MouseEvent, node: Node) => console.log('click', node);
-const onEdgeClick = (_: MouseEvent, edge: Edge) => console.log('click', edge);
-const onEdgeDoubleClick = (_: MouseEvent, edge: Edge) => console.log('dblclick', edge);
-const onEdgeMouseEnter = (_: MouseEvent, edge: Edge) => console.log('enter', edge);
-const onEdgeMouseMove = (_: MouseEvent, edge: Edge) => console.log('move', edge);
-const onEdgeMouseLeave = (_: MouseEvent, edge: Edge) => console.log('leave', edge);
+const EDGE_COLOR = '#ffffff';
+const NODE_WRAP = { background: 'transparent', border: 'none', padding: 0 };
+
+const h1Node = (id: string, label: string, x: number, y: number): Node => ({
+  id, type: 'mindmap',
+  data: { label, color: '#60a5fa', fontWeight: 700, fontSize: 15 },
+  position: { x, y }, style: NODE_WRAP,
+});
+
+const h2Node = (id: string, label: string, x: number, y: number): Node => ({
+  id, type: 'mindmap',
+  data: { label, color: '#f472b6' },
+  position: { x, y }, style: NODE_WRAP,
+});
+
+const h3Node = (id: string, label: string, x: number, y: number): Node => ({
+  id, type: 'mindmap',
+  data: { label, color: '#34d399', fontSize: 12 },
+  position: { x, y }, style: NODE_WRAP,
+});
+
+const h1Edge = (id: string, source: string, target: string): Edge => ({
+  id, source, target, type: 'draggable',
+  style: { strokeWidth: 5, stroke: EDGE_COLOR },
+});
+
+const h2Edge = (id: string, source: string, target: string): Edge => ({
+  id, source, target, type: 'single',
+  style: { strokeWidth: 3, stroke: EDGE_COLOR },
+});
 
 const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'input',
-    data: { label: 'Input 1' },
-    position: { x: 250, y: 0 },
-  },
-  { id: '2', data: { label: 'Node 2' }, position: { x: 150, y: 100 } },
-  { id: '2a', data: { label: 'Node 2a' }, position: { x: 0, y: 180 } },
-  { id: '2b', data: { label: 'Node 2b' }, position: { x: -40, y: 300 } },
-  { id: '3', data: { label: 'Node 3' }, position: { x: 250, y: 200 } },
-  { id: '4', data: { label: 'Node 4' }, position: { x: 400, y: 300 } },
-  { id: '3a', data: { label: 'Node 3a' }, position: { x: 150, y: 300 } },
-  { id: '5', data: { label: 'Node 5' }, position: { x: 250, y: 400 } },
-  {
-    id: '6',
-    type: 'output',
-    data: { label: 'Output 6' },
-    position: { x: 50, y: 550 },
-  },
-  {
-    id: '7',
-    type: 'output',
-    data: { label: 'Output 7' },
-    position: { x: 250, y: 550 },
-  },
-  {
-    id: '8',
-    type: 'output',
-    data: { label: 'Output 8' },
-    position: { x: 525, y: 600 },
-  },
-  {
-    id: '9',
-    type: 'output',
-    data: { label: 'Output 9' },
-    position: { x: 675, y: 500 },
-  },
+  // h1 - central root
+  h1Node('h1', 'lmnop', 460, 270),
+
+  // h2 - four branches in quadrants
+  h2Node('writing',     'Writing',     130,  60),
+  h2Node('research',    'Research',    810,  60),
+  h2Node('design',      'Design',      810, 460),
+  h2Node('engineering', 'Engineering', 130, 460),
+
+  // h3 - Writing
+  h3Node('morning-pages', 'Morning Pages', -80,  -80),
+  h3Node('weekly-review', 'Weekly Review', 130, -140),
+
+  // h3 - Research
+  h3Node('reading-list', 'Reading List', 1050,  -80),
+  h3Node('bookmarks',    'Bookmarks',    1060,  120),
+
+  // h3 - Design
+  h3Node('ui-concepts', 'UI Concepts', 1060, 400),
+  h3Node('typography',  'Typography',  1060, 540),
+
+  // h3 - Engineering
+  h3Node('react-flow', 'React Flow', -80, 400),
+  h3Node('tauri',      'Tauri',      -80, 540),
 ];
 
 const initialEdges: Edge[] = [
-  {
-    id: 'e1-2',
-    source: '1',
-    target: '2',
-    type: 'draggable',
-    label: 'click to select, then drag the circle',
-    style: { strokeWidth: 3.5 },
-  },
-  {
-    id: 'e2-2a',
-    source: '2',
-    target: '2a',
-    type: 'smoothstep',
-    label: 'smoothstep edge',
-  },
-  {
-    id: 'e2a-2b',
-    source: '2a',
-    target: '2b',
-    type: 'simplebezier',
-    label: 'simple bezier edge',
-  },
-  { id: 'e2-3', source: '2', target: '3', type: 'step', label: 'step edge' },
-  {
-    id: 'e3-4',
-    source: '3',
-    target: '4',
-    type: 'straight',
-    label: 'straight edge',
-  },
-  {
-    id: 'e3-3a',
-    source: '3',
-    target: '3a',
-    type: 'straight',
-    label: 'label only edge',
-    style: { stroke: 'none' },
-  },
-  {
-    id: 'e3-5',
-    source: '4',
-    target: '5',
-    animated: true,
-    label: 'animated styled edge',
-    style: { stroke: 'red' },
-  },
-  {
-    id: 'e5-7',
-    source: '5',
-    target: '7',
-    label: 'label with styled bg',
-    labelBgPadding: [8, 4],
-    labelBgBorderRadius: 4,
-    labelBgStyle: { fill: '#FFCC00', color: '#fff', fillOpacity: 0.7 },
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-    },
-  },
-  {
-    id: 'e5-8',
-    source: '5',
-    target: '8',
-    type: 'custom',
-    data: { text: 'custom edge' },
-  },
-  {
-    id: 'e5-9',
-    source: '5',
-    target: '9',
-    type: 'custom2',
-    data: { text: 'custom edge 2' },
-  },
-  {
-    id: 'e5-6',
-    source: '5',
-    target: '6',
-    label: (
-      <>
-        <tspan>i am using</tspan>
-        <tspan dy={10} x={0}>
-          {'<tspan>'}
-        </tspan>
-      </>
-    ),
-    labelStyle: { fill: 'red', fontWeight: 700 },
-    style: { stroke: '#ffcc00' },
-    markerEnd: {
-      type: MarkerType.Arrow,
-      color: '#FFCC00',
-      markerUnits: 'userSpaceOnUse',
-      width: 20,
-      height: 20,
-      strokeWidth: 2,
-    },
-    markerStart: {
-      type: MarkerType.ArrowClosed,
-      color: '#FFCC00',
-      orient: 'auto-start-reverse',
-      markerUnits: 'userSpaceOnUse',
-      width: 20,
-      height: 20,
-    },
-  },
+  // h1 -> h2 (2-point cubic bezier — floating, connects from nearest boundary)
+  h1Edge('h1-writing',     'h1', 'writing'),
+  h1Edge('h1-research',    'h1', 'research'),
+  h1Edge('h1-design',      'h1', 'design'),
+  h1Edge('h1-engineering', 'h1', 'engineering'),
+
+  // Writing -> h3
+  h2Edge('writing-morning', 'writing', 'morning-pages'),
+  h2Edge('writing-weekly',  'writing', 'weekly-review'),
+
+  // Research -> h3
+  h2Edge('research-reading',    'research', 'reading-list'),
+  h2Edge('research-bookmarks',  'research', 'bookmarks'),
+
+  // Design -> h3
+  h2Edge('design-ui',         'design', 'ui-concepts'),
+  h2Edge('design-typography', 'design', 'typography'),
+
+  // Engineering -> h3
+  h2Edge('engineering-reactflow', 'engineering', 'react-flow'),
+  h2Edge('engineering-tauri',     'engineering', 'tauri'),
 ];
 
 const edgeTypes: EdgeTypes = {
-  custom: CustomEdge,
-  custom2: CustomEdge2,
   draggable: DraggableEdge,
+  single: SingleWaypointEdge,
+};
+
+const nodeTypes: NodeTypes = {
+  mindmap: MindmapNode,
 };
 
 const EdgesFlow = () => {
   const [nodes, , onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const onConnect = useCallback((params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
+  const [canvasMenuPos, setCanvasMenuPos] = useState<{ x: number; y: number } | null>(null);
+
+  const onConnect = useCallback(
+    (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges],
+  );
+
+  const onPaneContextMenu = useCallback((e: React.MouseEvent | MouseEvent) => {
+    e.preventDefault();
+    const ce = e as React.MouseEvent;
+    setCanvasMenuPos({ x: ce.clientX, y: ce.clientY });
+  }, []);
+
+  const closeCanvasMenu = useCallback(() => setCanvasMenuPos(null), []);
 
   return (
     <ReactFlow
@@ -189,20 +134,17 @@ const EdgesFlow = () => {
       edges={edges}
       onNodesChange={onNodesChange}
       onEdgesChange={onEdgesChange}
-      onNodeClick={onNodeClick}
       onConnect={onConnect}
-      onNodeDragStop={onNodeDragStop}
-      snapToGrid={true}
       edgeTypes={edgeTypes}
-      onEdgeClick={onEdgeClick}
-      onEdgeDoubleClick={onEdgeDoubleClick}
-      onEdgeMouseEnter={onEdgeMouseEnter}
-      onEdgeMouseMove={onEdgeMouseMove}
-      onEdgeMouseLeave={onEdgeMouseLeave}
+      nodeTypes={nodeTypes}
+      onPaneContextMenu={onPaneContextMenu}
+      snapToGrid={true}
+      fitView
+      colorMode="dark"
     >
-      <MiniMap />
       <Controls />
-      <Background />
+      <Background color="#27272a" variant={BackgroundVariant.Dots} gap={20} size={1} />
+      <CanvasMenu menuPos={canvasMenuPos} onClose={closeCanvasMenu} />
     </ReactFlow>
   );
 };
