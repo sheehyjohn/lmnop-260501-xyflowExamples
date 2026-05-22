@@ -16,6 +16,7 @@ import {
 
 import CustomEdge from './CustomEdge';
 import CustomEdge2 from './CustomEdge2';
+import DraggableEdge from './DraggableEdge';
 
 const onNodeDragStop = (_: MouseEvent, node: Node) => console.log('drag stop', node);
 const onNodeClick = (_: MouseEvent, node: Node) => console.log('click', node);
@@ -70,8 +71,8 @@ const initialEdges: Edge[] = [
     id: 'e1-2',
     source: '1',
     target: '2',
-    label: 'bezier edge (default)',
-    className: 'normal-edge',
+    type: 'draggable',
+    label: 'click to select, then drag the circle',
     style: { strokeWidth: 3.5 },
   },
   {
@@ -174,6 +175,7 @@ const initialEdges: Edge[] = [
 const edgeTypes: EdgeTypes = {
   custom: CustomEdge,
   custom2: CustomEdge2,
+  draggable: DraggableEdge,
 };
 
 const EdgesFlow = () => {

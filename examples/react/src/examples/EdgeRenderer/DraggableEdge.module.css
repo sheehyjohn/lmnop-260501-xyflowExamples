@@ -1,0 +1,14 @@
+.handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  border: 1.5px solid #555;
+  cursor: grab;
+  touch-action: none;
+  pointer-events: all;
+  transform: translate(-50%, -50%) translate(var(--wp-x), var(--wp-y));
+}
