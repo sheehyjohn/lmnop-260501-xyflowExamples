@@ -12,3 +12,74 @@
   pointer-events: all;
   transform: translate(-50%, -50%) translate(var(--wp-x), var(--wp-y));
 }
+
+.menu {
+  position: fixed;
+  left: var(--menu-x);
+  top: var(--menu-y);
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  min-width: 160px;
+  padding: 4px 0;
+  z-index: 9999;
+  font-size: 13px;
+  user-select: none;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  cursor: pointer;
+  color: #1e293b;
+}
+
+.menu-item:hover {
+  background: #f1f5f9;
+}
+
+.menu-item-disabled {
+  color: #94a3b8;
+  cursor: default;
+}
+
+.menu-item-disabled:hover {
+  background: none;
+}
+
+.menu-icon {
+  display: flex;
+  align-items: center;
+  width: 16px;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 4px 0;
+}
+
+.colour-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 8px 12px 4px;
+}
+
+.colour-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  background: var(--swatch-color);
+  padding: 0;
+}
+
+.colour-swatch:hover {
+  transform: scale(1.2);
+  border-color: #555;
+}
