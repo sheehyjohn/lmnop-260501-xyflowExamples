@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Windows system paths accidentally created by Cypress
+"%SystemDrive%"
+%SystemDrive%
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
