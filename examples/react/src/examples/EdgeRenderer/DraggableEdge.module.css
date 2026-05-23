@@ -50,6 +50,11 @@
   background: none;
 }
 
+.menu-item-active {
+  color: #3b82f6;
+  font-weight: 500;
+}
+
 .menu-icon {
   display: flex;
   align-items: center;

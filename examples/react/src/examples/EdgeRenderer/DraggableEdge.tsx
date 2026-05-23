@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { EdgeProps, EdgeLabelRenderer, useReactFlow, useStore } from '@xyflow/react';
 import styles from './DraggableEdge.module.css';
-import { getEdgeParams } from '../FloatingEdges/utils';
+import { getPillEdgeParams } from './edgeUtils';
 
 type Waypoint = { x: number; y: number };
 type Waypoints = [Waypoint, Waypoint];
@@ -17,12 +17,14 @@ function defaultWaypoints(sx: number, sy: number, tx: number, ty: number): Waypo
   const dx = tx - sx;
   const dy = ty - sy;
   const len = Math.sqrt(dx * dx + dy * dy) || 1;
-  const nx = -dy / len;
-  const ny = dx / len;
-  const offset = Math.min(len * 0.28, 90);
+  // Horizontal-exit bezier: cp1=(sx+exit*L, sy), cp2=(tx-exit*L, ty)
+  // Pass-through waypoints at t=1/3 and t=2/3 derived from those control points.
+  const exit = dx >= 0 ? 1 : -1;
+  const L = len * 0.4;
+  const k = 2 / 9; // 6/27
   return [
-    { x: sx + dx / 3 + nx * offset, y: sy + dy / 3 + ny * offset },
-    { x: sx + dx * (2 / 3) + nx * offset, y: sy + dy * (2 / 3) + ny * offset },
+    { x: (20 * sx + 7 * tx) / 27 + k * exit * L, y: (20 * sy + 7 * ty) / 27 },
+    { x: (7 * sx + 20 * tx) / 27 - k * exit * L, y: (7 * sy + 20 * ty) / 27 },
   ];
 }
 
@@ -70,7 +72,7 @@ const DraggableEdge = ({
     sourceNode: s.nodeLookup.get(source),
     targetNode: s.nodeLookup.get(target),
   }));
-  const float = sourceNode && targetNode ? getEdgeParams(sourceNode, targetNode) : null;
+  const float = sourceNode && targetNode ? getPillEdgeParams(sourceNode, targetNode) : null;
   const sx = float?.sx ?? sourceX;
   const sy = float?.sy ?? sourceY;
   const tx = float?.tx ?? targetX;
@@ -169,9 +171,7 @@ const DraggableEdge = ({
     (e.target as Element).releasePointerCapture(e.pointerId);
   }, []);
 
-  const pathRef = useRef<SVGPathElement>(null);
-  useLayoutEffect(() => {
-    const el = pathRef.current;
+  const applyStyle = useCallback((el: SVGPathElement | null) => {
     if (!el) return;
     const s = style as React.CSSProperties | undefined;
     el.style.stroke = (s?.stroke as string) ?? '';
@@ -182,7 +182,7 @@ const DraggableEdge = ({
   return (
     <>
       <path
-        ref={pathRef}
+        ref={applyStyle}
         d={edgePath}
         fill="none"
         className="react-flow__edge-path"

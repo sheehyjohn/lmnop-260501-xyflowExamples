@@ -6,6 +6,8 @@ import styles from './DraggableEdge.module.css';
 type Props = {
   menuPos: { x: number; y: number } | null;
   onClose: () => void;
+  stylusMode: boolean;
+  onToggleStylus: () => void;
 };
 
 const PlusIcon = () => (
@@ -14,7 +16,14 @@ const PlusIcon = () => (
   </svg>
 );
 
-const CanvasMenu = ({ menuPos, onClose }: Props) => {
+const StylusIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+    <path d="M11 2 L14 5 L5 14 L2 14 L2 11 Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+    <path d="M9 4 L12 7" stroke="currentColor" strokeWidth="1.5" />
+  </svg>
+);
+
+const CanvasMenu = ({ menuPos, onClose, stylusMode, onToggleStylus }: Props) => {
   const { screenToFlowPosition, setNodes } = useReactFlow();
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +72,14 @@ const CanvasMenu = ({ menuPos, onClose }: Props) => {
       <div className={styles['menu-item']} onClick={handleCreateNode}>
         <span className={styles['menu-icon']}><PlusIcon /></span>
         Create node
+      </div>
+      <div className={styles['menu-divider']} />
+      <div
+        className={`${styles['menu-item']} ${stylusMode ? styles['menu-item-active'] : ''}`}
+        onClick={() => { onToggleStylus(); onClose(); }}
+      >
+        <span className={styles['menu-icon']}><StylusIcon /></span>
+        {stylusMode ? 'Stylus on' : 'Stylus off'}
       </div>
     </div>,
     document.body,

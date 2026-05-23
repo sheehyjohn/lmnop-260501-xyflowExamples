@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { EdgeProps, EdgeLabelRenderer, useReactFlow, useStore } from '@xyflow/react';
 import styles from './DraggableEdge.module.css';
-import { getEdgeParams } from '../FloatingEdges/utils';
+import { getPillEdgeParams } from './edgeUtils';
 
 type Waypoint = { x: number; y: number };
 
@@ -16,10 +16,12 @@ function defaultWaypoint(sx: number, sy: number, tx: number, ty: number): Waypoi
   const dx = tx - sx;
   const dy = ty - sy;
   const len = Math.sqrt(dx * dx + dy * dy) || 1;
-  const nx = -dy / len;
-  const ny = dx / len;
-  const offset = Math.min(len * 0.22, 55);
-  return { x: (sx + tx) / 2 + nx * offset, y: (sy + ty) / 2 + ny * offset };
+  // Horizontal-exit: control point at (mid.x + exit*L, mid.y) → waypoint at (mid.x + exit*L/2, mid.y)
+  const exit = dx >= 0 ? 1 : -1;
+  return {
+    x: (sx + tx) / 2 + exit * len * 0.2,
+    y: (sy + ty) / 2,
+  };
 }
 
 function quadPath(sx: number, sy: number, tx: number, ty: number, wp: Waypoint): string {
@@ -59,7 +61,7 @@ const SingleWaypointEdge = ({
     sourceNode: s.nodeLookup.get(source),
     targetNode: s.nodeLookup.get(target),
   }));
-  const float = sourceNode && targetNode ? getEdgeParams(sourceNode, targetNode) : null;
+  const float = sourceNode && targetNode ? getPillEdgeParams(sourceNode, targetNode) : null;
   const sx = float?.sx ?? sourceX;
   const sy = float?.sy ?? sourceY;
   const tx = float?.tx ?? targetX;
@@ -150,9 +152,7 @@ const SingleWaypointEdge = ({
     (e.target as Element).releasePointerCapture(e.pointerId);
   }, []);
 
-  const pathRef = useRef<SVGPathElement>(null);
-  useLayoutEffect(() => {
-    const el = pathRef.current;
+  const applyStyle = useCallback((el: SVGPathElement | null) => {
     if (!el) return;
     const s = style as React.CSSProperties | undefined;
     el.style.stroke = (s?.stroke as string) ?? '';
@@ -163,7 +163,7 @@ const SingleWaypointEdge = ({
   return (
     <>
       <path
-        ref={pathRef}
+        ref={applyStyle}
         d={edgePath}
         fill="none"
         className="react-flow__edge-path"
